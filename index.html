@@ -29,7 +29,7 @@ function draw() {
 	try {
 		var canvas = document.getElementById("webgl")
 		var gl = document.getElementById("webgl")
-			.getContext("webgl2");
+			.getContext("webgl");
 		if (!gl) { throw "x"; }
 	} catch (err) {
 		throw "Your web browser does not support WebGL!";
