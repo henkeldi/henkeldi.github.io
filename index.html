@@ -10,18 +10,7 @@
 	</style>
 </head>
 <body>
- <script type="glsl" id="simple.vs">
-attribute vec3 pos;
 
-void main() {
-	gl_Position = vec4(pos, 1.0);
-}
- </script>
- <script type="glsl" id="simple.frag">
-void main() {
-	gl_FragColor = vec4(0.2, 0.3, 0.8, 1.0);
-}
- </script>
 <script src="js/shader.js"></script>
 <script type="text/javascript">
 
@@ -37,13 +26,13 @@ function draw() {
 
 	window.addEventListener('resize', resizeCanvas, false);
 
-	shader = new Shader(gl, "simple.vs", "simple.frag")
+	shader = new Shader(gl, "js/shader/simple.vs", "js/shader/simple.frag")
 	shader.compile()
 	shader.use()
 
 	shader.attributeSetFloats("pos", 3, [
 		-1, 0, 0,
-		0, 1, 0,
+		0, 0.2, 0,
 		0, -1, 0,
 		1, 0, 0
 	]);

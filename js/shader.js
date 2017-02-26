@@ -24,7 +24,7 @@ class Shader {
             console.log(glGetProgramInfoLog(this.program));
             throw "Shader linking failed!";
 		} else {
-            console.log("Shader linked.");
+            //console.log("Shader linked.");
 		}
 		gl.deleteShader(vertex_shader);
 		gl.deleteShader(fragment_shader);
@@ -32,7 +32,7 @@ class Shader {
 
 	_compileShader(shader_path, shader_type){
 		var gl = this.gl;
-        var shader_code = document.getElementById(shader_path).textContent;
+        var shader_code = this._readFile(shader_path)
         var shader = gl.createShader(shader_type);
         gl.shaderSource(shader, shader_code);
         gl.compileShader(shader);
@@ -40,9 +40,23 @@ class Shader {
             console.log(gl.getShaderInfoLog(shader));
             throw 'Shader compilation failed!';
         } else {
-            console.log("Shader compiled ({0}).", shader_path);
+            //console.log("Shader compiled ({0}).", shader_path);
         }
         return shader;
+	}
+
+	_readFile(path) {
+		var request = new XMLHttpRequest();
+		request.open('GET', path, false);  // `false` makes the request synchronous
+		request.overrideMimeType('text/plain');
+		request.send(null);
+
+		if (request.status === 200) {
+
+		  return request.responseText;
+		} else {
+			throw "Could not read file.";
+		}
 	}
 
 	use() {
