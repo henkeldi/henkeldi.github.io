@@ -13,15 +13,15 @@ class Shader {
 		var vertex_shader = this._compileShader(this.vertex_shader_path, gl.VERTEX_SHADER);
 		var fragment_shader = this._compileShader(this.fragment_shader_path, gl.FRAGMENT_SHADER);
 
-		this.program = gl.createProgram();
+		this.id = gl.createProgram();
 		
-		gl.attachShader(this.program, vertex_shader);
-		gl.attachShader(this.program, fragment_shader);
+		gl.attachShader(this.id, vertex_shader);
+		gl.attachShader(this.id, fragment_shader);
 		
-		gl.linkProgram(this.program);
+		gl.linkProgram(this.id);
 
-        if (!gl.getProgramParameter(this.program, gl.LINK_STATUS)) {
-            console.log(glGetProgramInfoLog(this.program));
+        if (!gl.getProgramParameter(this.id, gl.LINK_STATUS)) {
+            console.log(glGetProgramInfoLog(this.id));
             throw "Shader linking failed!";
 		} else {
             //console.log("Shader linked.");
@@ -60,12 +60,12 @@ class Shader {
 	}
 
 	use() {
-		this.gl.useProgram(this.program);
+		this.gl.useProgram(this.id);
 	}
 
 	attributeSetFloats(attr_name, rsize, arr) {
 		var gl = this.gl;
-		var prog = this.program
+		var prog = this.id
 		gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(arr), gl.STATIC_DRAW);
 		var attr = gl.getAttribLocation(prog, attr_name);
