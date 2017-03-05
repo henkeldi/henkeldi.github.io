@@ -15,6 +15,13 @@ class Vertexbuffer {
 		this.unbind()
 	}
 
+	bufferSubData(offset, data){
+		var gl = this.gl;
+		this.bind()
+		gl.bufferSubData(gl.ARRAY_BUFFER, offset, data)
+		this.unbind()
+	}
+
 	bind() {
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.id)
 	}

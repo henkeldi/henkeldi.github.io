@@ -46,18 +46,67 @@ class Main {
 
 		//fetch("js/assets/img/024.png").then((res) => console.log(res))
 
-		this.vertexbuffer = new Vertexbuffer(gl, new Float32Array(vert_norms), gl.STATIC_DRAW);
+		this.rect_shader = new Shader(gl, "js/shader/rect.vs", "js/shader/rect.frag");
+		this.rect_shader.compile();
 
+		this.vertexbuffer = new Vertexbuffer(gl, new Float32Array(vert_norms), gl.STATIC_DRAW);
 		this.vertexformat = new Vertexformat(gl, this.texture_shader,
 								[ 	["position", 3, gl.FLOAT, false, 5*4, 0],
 									["texCoords", 2, gl.FLOAT, false, 5*4, 3*4]]);
 
-		this.vertexbuffer.bind()
-		this.vertexformat.bind()
+
+		var vert_norms_rect = 
+		[	
+			-0.2, -0.2,0,
+			0.2, -0.2, 0, 
+			0.2, 0.2,  0, 
+			-0.2, 0.2, 0,
+		]
+
+		this.vbo_rect_buffer = new Vertexbuffer(gl, new Float32Array(vert_norms_rect), gl.DYNAMIC_DRAW);
+		this.vbo_rect_format = new Vertexformat(gl, this.texture_shader,
+								[["position", 2, gl.FLOAT, false, 2*4, 0]]);
 
 		this.draw();
+		this.dragged = false;
+		this.curX = 0.0
+		this.curY = 0.0
+	    window.onmousedown = function(ev) {
+	        self.dragged = true;
+			self.curX = 2.0*ev.clientX / self.canvas.width - 1.0;
+			self.curY = -2.0*ev.clientY / self.canvas.height + 1.0; 
+	    };
+
+    	window.onmouseup = function(ev) {
+        	self.dragged = false;
+        	self.draw()
+	    };
+
 		window.addEventListener('resize', this.on_resize, false);
+		window.onmousemove = function(ev) {
+			if(self.dragged) {
+				var norm_X = 2.0*ev.clientX / self.canvas.width - 1.0;
+				var norm_Y = -2.0*ev.clientY / self.canvas.height + 1.0; 
+
+				var x_min = Math.min(self.curX, norm_X)
+				var x_max = Math.max(self.curX, norm_X)
+				var y_min = Math.min(self.curY, norm_Y)
+				var y_max = Math.max(self.curY, norm_Y)
+	
+				var vert_norms_rect = 
+				[	
+					x_min, y_min,
+					x_max, y_min, 
+					x_max, y_max, 
+					x_min, y_max
+				]
+				self.vbo_rect_buffer.bufferSubData(0, new Float32Array(vert_norms_rect))
+				self.draw()
+			}
+        }
 		this.texture_loaded = false;
+		gl.enable(gl.BLEND)
+		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 	}
 
 	init_fbo(self){
@@ -88,6 +137,8 @@ class Main {
 		var gl = this.gl;
 		
 		// PASS 0
+		this.vertexbuffer.bind()
+		this.vertexformat.bind()
 		if(this.texture_loaded){
 			this.fbo.bind();
 				this.texture_shader.use();
@@ -114,6 +165,17 @@ class Main {
 			this.color1.bind();
 				gl.drawArrays(gl.TRIANGLE_FAN, 4, 4);
 			this.color1.unbind();
+		if(self.dragged) {
+			this.rect_shader.use()
+			this.vbo_rect_buffer.bind()
+			this.vbo_rect_format.bind()
+			gl.enable(gl.BLEND)
+			gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+			gl.disable(gl.BLEND)
+			gl.lineWidth(2.0)
+			gl.drawArrays(gl.LINE_LOOP, 0, 4);
+		}
+
 	}
 
 }
