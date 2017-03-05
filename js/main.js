@@ -26,6 +26,39 @@ class Main {
 		this.screen_shader = new Shader(gl, "js/shader/screen.vs", "js/shader/screen.frag");
 		this.screen_shader.compile();
 
+		this.body_shader = new Shader(gl, "js/shader/body.vs", "js/shader/body.frag");
+		this.body_shader.compile();
+
+		var path = "js/assets/meshes/mesh.bin"
+		var request = new XMLHttpRequest();
+		request.open('GET', path, true);  // `false` makes the request synchronous
+		request.responseType = "arraybuffer";
+		request.send(null);
+
+		this.loaded_mesh = false
+
+		request.onload = function (evt){
+			if (request.status === 200) {
+					var arrayBuffer = request.response;
+					if (arrayBuffer) {
+						console.log(arrayBuffer)
+						console.log("LOADED MESH")
+						self.body_buffer = new Vertexbuffer(gl, new Float32Array(arrayBuffer), gl.STATIC_DRAW);
+						self.body_format = new Vertexformat(gl, self.body_shader,
+											[ ["position", 3, gl.FLOAT, false, 3*4, 0] ]);
+
+						self.loaded_mesh = true
+					} else {
+						throw "Not arraybuffer."
+					}
+			} else {
+				throw "Could not read file.";
+			}
+		}
+
+
+
+
 		this.texture = new Texture(gl, gl.LINEAR, gl.LINEAR, gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE);
 
 		this.texture.image = new Image();
@@ -55,12 +88,14 @@ class Main {
 									["texCoords", 2, gl.FLOAT, false, 5*4, 3*4]]);
 
 
+
+
 		var vert_norms_rect = 
 		[	
-			-0.2, -0.2,0,
-			0.2, -0.2, 0, 
-			0.2, 0.2,  0, 
-			-0.2, 0.2, 0,
+			-0.2, -0.2,
+			0.2, -0.2,  
+			0.2, 0.2,   
+			-0.2, 0.2, 
 		]
 
 		this.vbo_rect_buffer = new Vertexbuffer(gl, new Float32Array(vert_norms_rect), gl.DYNAMIC_DRAW);
@@ -105,8 +140,6 @@ class Main {
 			}
         }
 		this.texture_loaded = false;
-		gl.enable(gl.BLEND)
-		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 	}
 
 	init_fbo(self){
@@ -137,23 +170,33 @@ class Main {
 		var gl = this.gl;
 		
 		// PASS 0
-		this.vertexbuffer.bind()
-		this.vertexformat.bind()
+		this.vertexbuffer.bind();
+		this.vertexformat.bind();
+		this.fbo.bind();
 		if(this.texture_loaded){
-			this.fbo.bind();
-				this.texture_shader.use();
-					gl.clearColor(54/255.0, 52/255.0, 64/255.0, 1);
-					gl.clear(gl.COLOR_BUFFER_BIT);
-					gl.viewport(0, 0, window.innerWidth, window.innerHeight);
-					
-					gl.activeTexture(gl.TEXTURE0);
-					gl.uniform1i( gl.getUniformLocation(this.texture_shader.id, "uSampler"), 0);
-					this.texture.bind();
-						gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-					this.texture.unbind();
-			this.fbo.unbind();
+			this.texture_shader.use();
+				gl.clearColor(24/255.0, 22/255.0, 34/255.0, 1);
+				gl.clear(gl.COLOR_BUFFER_BIT);
+				gl.viewport(0, 0, window.innerWidth, window.innerHeight);
+				
+				gl.activeTexture(gl.TEXTURE0);
+				gl.uniform1i( gl.getUniformLocation(this.texture_shader.id, "uSampler"), 0);
+				this.texture.bind();
+					//gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+				this.texture.unbind();
+		}
+		if(this.loaded_mesh){
+			this.body_buffer.bind()
+			this.body_format.bind()
+			this.body_shader.use()
+			gl.drawArrays(gl.TRIANGLES, 0, 80283);
+			console.log('DRAW MESH')
 		}
 
+
+		this.fbo.unbind();
+		this.vertexbuffer.bind();
+		this.vertexformat.bind();
 		// PASS 1
 		this.screen_shader.use();
 			gl.clearColor(0.8, 0.0, 0.0, 1);
@@ -166,13 +209,16 @@ class Main {
 				gl.drawArrays(gl.TRIANGLE_FAN, 4, 4);
 			this.color1.unbind();
 		if(self.dragged) {
-			this.rect_shader.use()
-			this.vbo_rect_buffer.bind()
-			this.vbo_rect_format.bind()
-			gl.enable(gl.BLEND)
+			this.rect_shader.use();
+			this.vbo_rect_buffer.bind();
+			this.vbo_rect_format.bind();
+			gl.enable(gl.BLEND);
+			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+			gl.uniform4f( gl.getUniformLocation(this.rect_shader.id, "color"), 0.1, 0.2, 0.7, 0.3);
 			gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-			gl.disable(gl.BLEND)
-			gl.lineWidth(2.0)
+			gl.disable(gl.BLEND);
+			gl.lineWidth(2.0);
+			gl.uniform4f( gl.getUniformLocation(this.rect_shader.id, "color"), 0.2, 0.4, 0.8, 1.0);
 			gl.drawArrays(gl.LINE_LOOP, 0, 4);
 		}
 

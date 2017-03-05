@@ -52,10 +52,30 @@ class Shader {
 		request.send(null);
 
 		if (request.status === 200) {
-
-		  return request.responseText;
+		  		return request.responseText;
 		} else {
 			throw "Could not read file.";
+		}
+	}
+
+	static read_binary_file(path) {
+		var request = new XMLHttpRequest();
+		request.open('GET', path, true);  // `false` makes the request synchronous
+		request.responseType = "arraybuffer";
+		request.send(null);
+
+		request.onload = function (evt){
+			if (request.status === 200) {
+					var arrayBuffer = request.response;
+					if (arrayBuffer) {
+						console.log(arrayBuffer)
+						return arrayBuffer;
+					} else {
+						throw "Not arraybuffer."
+					}
+			} else {
+				throw "Could not read file.";
+			}
 		}
 	}
 
