@@ -48,6 +48,7 @@ class Main {
 											[ ["position", 3, gl.FLOAT, false, 3*4, 0] ]);
 
 						self.loaded_mesh = true
+						self.draw()
 					} else {
 						throw "Not arraybuffer."
 					}
