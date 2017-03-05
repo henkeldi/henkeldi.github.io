@@ -32,7 +32,7 @@ class Shader {
 
 	_compileShader(shader_path, shader_type){
 		var gl = this.gl;
-        var shader_code = this._readFile(shader_path)
+        var shader_code = Shader.readFile(shader_path)
         var shader = gl.createShader(shader_type);
         gl.shaderSource(shader, shader_code);
         gl.compileShader(shader);
@@ -45,7 +45,7 @@ class Shader {
         return shader;
 	}
 
-	_readFile(path) {
+	static readFile(path) {
 		var request = new XMLHttpRequest();
 		request.open('GET', path, false);  // `false` makes the request synchronous
 		request.overrideMimeType('text/plain');
@@ -63,6 +63,11 @@ class Shader {
 		this.gl.useProgram(this.id);
 	}
 
+	attrib(attr_name){
+		var gl = this.gl;
+		return gl.getAttribLocation(this.id, attr_name);
+	}
+
 	attributeSetFloats(attr_name, rsize, arr) {
 		var gl = this.gl;
 		var prog = this.id
@@ -73,3 +78,5 @@ class Shader {
 		gl.vertexAttribPointer(attr, rsize, gl.FLOAT, false, 0, 0);
 	}
 }
+
+//gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, new Float32Array(pMatrix.flatten()));

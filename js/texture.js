@@ -64,4 +64,9 @@ class Texture {
 		gl.bindTexture(gl.TEXTURE_2D, null);	
 	}
 
+	delete(){
+		var gl = this.gl;
+		gl.deleteTexture(this.id);	
+	}
+
 }

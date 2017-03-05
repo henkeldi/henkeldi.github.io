@@ -9,10 +9,8 @@ class Framebuffer {
 			var attachement_type = attachments[i][0]
 			var attachement = attachments[i][1]
 			if (attachement instanceof Texture){
-				console.log('Adding Texture')
 				gl.framebufferTexture2D(gl.FRAMEBUFFER, attachement_type, gl.TEXTURE_2D, attachement.id, 0)
 			}else if(attachement instanceof Renderbuffer){
-				console.log('Adding Renderbuffer')
 				gl.framebufferRenderbuffer(gl.FRAMEBUFFER, attachement_type, gl.RENDERBUFFER, attachement.id)
 			}else
 				throw 'Invalid framebuffer attachement.';
@@ -33,6 +31,11 @@ class Framebuffer {
 	unbind(){
 		var gl = this.gl;
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+	}
+
+	delete(){
+		var gl = this.gl;
+		gl.deleteFramebuffer(this.id);	
 	}
 
 }
