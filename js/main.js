@@ -41,14 +41,13 @@ class Main {
 			if (request.status === 200) {
 					var arrayBuffer = request.response;
 					if (arrayBuffer) {
-						console.log(arrayBuffer)
-						console.log("LOADED MESH")
 						self.body_buffer = new Vertexbuffer(gl, new Float32Array(arrayBuffer), gl.STATIC_DRAW);
 						self.body_format = new Vertexformat(gl, self.body_shader,
-											[ ["position", 3, gl.FLOAT, false, 3*4, 0] ]);
+											[ 	["position", 3, gl.FLOAT, false, 6*4, 0],
+												["normal", 3, gl.FLOAT, false, 6*4, 3*4] ]);
 
 						self.loaded_mesh = true
-						self.draw()
+						//self.draw()
 					} else {
 						throw "Not arraybuffer."
 					}
@@ -56,15 +55,6 @@ class Main {
 				throw "Could not read file.";
 			}
 		}
-
-
-
-
-		this.texture = new Texture(gl, gl.LINEAR, gl.LINEAR, gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE);
-
-		this.texture.image = new Image();
-		this.texture.image.onload = function() { self.on_texture_loaded(self, gl, self.texture) };
-		this.texture.image.src = "js/assets/img/024.png";
 
 		var vert_norms = 
 		[	
@@ -77,6 +67,8 @@ class Main {
 			1, 1, 0, 1, 1,
 			-1, 1, 0, 0, 1
 		]
+		this.dir_light = new DirLight([0.3, -0.3, 2.0], [0.2, 0.2, 0.2], [0.6, 0.6, 0.6], [1.0, 1.0, 1.0])
+		this.material = Material.Emerald
 
 		//fetch("js/assets/img/024.png").then((res) => console.log(res))
 
@@ -89,6 +81,10 @@ class Main {
 									["texCoords", 2, gl.FLOAT, false, 5*4, 3*4]]);
 
 
+		this.texture = new Texture(gl, gl.LINEAR, gl.LINEAR, gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE);
+		this.texture.image = new Image();
+		this.texture.image.onload = function() { self.on_texture_loaded(self, gl, self.texture) };
+		this.texture.image.src = "js/assets/img/024.png";
 
 
 		var vert_norms_rect = 
@@ -147,7 +143,13 @@ class Main {
 		var gl = self.gl;
 		self.color1 = new Texture(gl, gl.LINEAR, gl.LINEAR, gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE);
 		self.color1.texImage(0, gl.RGBA, window.innerWidth, window.innerHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-		self.fbo = new Framebuffer(gl, [[gl.COLOR_ATTACHMENT0, self.color1]]);	
+		var depth = new Renderbuffer(gl, gl.DEPTH_COMPONENT16, window.innerWidth, window.innerHeight)
+		self.fbo = new Framebuffer(gl, [[gl.COLOR_ATTACHMENT0, self.color1],
+										[gl.DEPTH_ATTACHMENT, depth]]);
+		this.camera = new Camera()
+		var aspect_half = (window.innerWidth / window.innerHeight) / 2
+		this.camera.glOrtho(-aspect_half, aspect_half, -1, 1, -1000, 1000)
+		this.camera.look_at([0.8, -0.8, 0.4],[0.0,0.0,0.0],[0.0,0.0,1.0])
 	}
 
 	on_texture_loaded(self, gl, texture){
@@ -174,12 +176,14 @@ class Main {
 		this.vertexbuffer.bind();
 		this.vertexformat.bind();
 		this.fbo.bind();
+		
+
+
 		if(this.texture_loaded){
 			this.texture_shader.use();
 				gl.clearColor(24/255.0, 22/255.0, 34/255.0, 1);
-				gl.clear(gl.COLOR_BUFFER_BIT);
+				gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
 				gl.viewport(0, 0, window.innerWidth, window.innerHeight);
-				
 				gl.activeTexture(gl.TEXTURE0);
 				gl.uniform1i( gl.getUniformLocation(this.texture_shader.id, "uSampler"), 0);
 				this.texture.bind();
@@ -187,11 +191,15 @@ class Main {
 				this.texture.unbind();
 		}
 		if(this.loaded_mesh){
+			gl.enable(gl.DEPTH_TEST)
 			this.body_buffer.bind()
 			this.body_format.bind()
 			this.body_shader.use()
-			gl.drawArrays(gl.TRIANGLES, 0, 80283);
-			console.log('DRAW MESH')
+			this.dir_light.to_gl(this.body_shader)
+			this.material.to_gl(this.body_shader)
+			this.camera.to_gl(this.body_shader)
+			gl.drawArrays(gl.TRIANGLES, 0, 80286);
+			gl.disable(gl.DEPTH_TEST)
 		}
 
 
@@ -200,7 +208,6 @@ class Main {
 		this.vertexformat.bind();
 		// PASS 1
 		this.screen_shader.use();
-			gl.clearColor(0.8, 0.0, 0.0, 1);
 			gl.clear(gl.COLOR_BUFFER_BIT);
 			gl.viewport(0, 0, window.innerWidth, window.innerHeight);
 	
