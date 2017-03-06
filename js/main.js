@@ -29,7 +29,7 @@ class Main {
 		this.body_shader = new Shader(gl, "js/shader/body.vs", "js/shader/body.frag");
 		this.body_shader.compile();
 
-		var path = "js/assets/meshes/mesh.bin"
+		var path = "js/assets/meshes/mesh_simple.bin"
 		var request = new XMLHttpRequest();
 		request.open('GET', path, true);  // `false` makes the request synchronous
 		request.responseType = "arraybuffer";
@@ -198,7 +198,7 @@ class Main {
 			this.dir_light.to_gl(this.body_shader)
 			this.material.to_gl(this.body_shader)
 			this.camera.to_gl(this.body_shader)
-			gl.drawArrays(gl.TRIANGLES, 0, 80286);
+			gl.drawArrays(gl.TRIANGLES, 0, 14901); //80286
 			gl.disable(gl.DEPTH_TEST)
 		}
 
